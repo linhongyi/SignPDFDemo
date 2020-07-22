@@ -14,11 +14,6 @@ import SignaturePad from 'signature_pad'
 })
 
 export class AppComponent {
-  afuConfig = {
-    uploadAPI: {
-      url: "https://example-file-upload-api"
-    }
-  };
 
   @ViewChild('signature-pad') canvas: HTMLCanvasElement;
 
