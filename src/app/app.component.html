@@ -1,4 +1,46 @@
-<hello name="{{ name }}"></hello>
-<p>
-  Start editing to see some magic happen :)
-</p>
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>'Hello, world!' example</title>
+</head>
+
+<body>
+  <div class="container">
+
+    <div style="border: solid black 1px;" [style.width.px]=signaturePadWidth [style.height.px]=signaturePadHeight>
+      <!-- <signature-pad [options]="signaturePadOptions" (onBeginEvent)="drawStart()" (onEndEvent)="drawComplete()" #pad>
+      </signature-pad> -->
+    <canvas id="signature-pad" [style.width.px]=signaturePadWidth [style.height.px]=signaturePadHeight></canvas>
+    </div>
+    <button id="drawClearButton" *ngIf="canvasWidth>0" (click)="drawClear()">Clear Signature</button>
+
+    <br>
+
+    <div>
+      <!-- <button (click)="onLoadPDF()">LoadPDF</button> -->
+   
+      <input id="file" type="file" (change)="upload($event)" style="display: none" accept=".pdf" />
+      <button type="button" onclick="file.click()">檔案上傳</button>
+
+      <button (click)="savePdf()">SavePDF</button>
+ 
+      <button (click)="clear()">Clear</button>
+    </div>
+
+    <div class="wrapper">
+      <canvas id="pdf-canvas" [width]="canvasWidth" [height]="canvasHeight" [style.left.px]="canvasLeft"
+        [style.top.px]="canvasTop"></canvas>
+      <canvas id="signature-canvas" [width]="canvasWidth" [height]="canvasHeight" [style.left.px]="canvasLeft"
+        [style.top.px]="canvasTop"></canvas>
+    </div>
+
+
+  </div>
+
+
+  <!-- <div style="background-color: antiquewhite; width: 500px; height: 500px;" (document:mousemove)="onMouseMove($event)" (document:mousedown)="onMouseDown($event)" (document:mouseup)="onMouseUp($event)"></div> -->
+</body>
+
+</html>

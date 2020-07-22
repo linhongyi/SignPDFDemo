@@ -1,0 +1,19 @@
+.wrapper{
+    // position:relative;
+    text-align: center;
+    // background-color: red;
+}
+
+#pdf-canvas,#signature-canvas{
+    position:absolute;
+    // left: 0px;
+    // top: 0px;
+    border: 1px solid black;
+}
+
+.container{
+    display: flex;
+    flex-direction: column;
+    vertical-align: middle;
+    align-items: center;
+}
