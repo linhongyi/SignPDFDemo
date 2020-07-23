@@ -257,7 +257,7 @@ export class AppComponent {
           blockself.signaturePadHeight = 200;
 
           blockself.canvasLeft = (screen.width - viewport.width) / 2;
-          blockself.canvasTop = 350;
+          blockself.canvasTop = 380;
 
           // Render PDF page into canvas context
           var renderContext = {

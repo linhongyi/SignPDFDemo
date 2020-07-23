@@ -6,7 +6,8 @@ import { FileSaverModule } from 'ngx-filesaver';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
-import {MatNativeDateModule} from '@angular/material/core';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,7 @@ import {MatNativeDateModule} from '@angular/material/core';
     MatButtonModule,
     MatNativeDateModule
   ],
-  providers: [],
+  providers: [  { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'fill' } }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

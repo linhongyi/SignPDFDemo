@@ -2,52 +2,48 @@
 <html>
 
 <head>
-  <meta charset="UTF-8">
-  <title>'Hello, world!' example</title>
+	<meta charset="UTF-8">
+	<title>'Hello, world!' example</title>
 </head>
 
 <body>
-  <div class="container">
+	<div class="container">
 
-    <div style="border: solid black 1px;" [style.width.px]=signaturePadWidth [style.height.px]=signaturePadHeight>
-      <!-- <signature-pad [options]="signaturePadOptions" (onBeginEvent)="drawStart()" (onEndEvent)="drawComplete()" #pad>
+		<div style="border: solid black 1px;" [style.width.px]=signaturePadWidth [style.height.px]=signaturePadHeight>
+			<!-- <signature-pad [options]="signaturePadOptions" (onBeginEvent)="drawStart()" (onEndEvent)="drawComplete()" #pad>
       </signature-pad> -->
-    <canvas id="signature-pad" [style.width.px]=signaturePadWidth [style.height.px]=signaturePadHeight></canvas>
-    </div>
-    <button id="drawClearButton" *ngIf="canvasWidth>0" (click)="drawClear()">Clear Signature</button>
+			<canvas id="signature-pad" [style.width.px]=signaturePadWidth [style.height.px]=signaturePadHeight></canvas>
+		</div>
+		<button mat-stroked-button color="warn" id="drawClearButton" *ngIf="canvasWidth>0" (click)="drawClear()">清除簽名板</button>
 
-    <br>
+		<div>
+			<!-- <button (click)="onLoadPDF()">LoadPDF</button> -->
 
-    <div>
-      <!-- <button (click)="onLoadPDF()">LoadPDF</button> -->
-   
-      <input id="file" type="file" (change)="upload($event)" style="display: none" accept=".pdf" />
-      <button type="button" onclick="file.click()">檔案上傳</button>
-      <!-- <button (click)="downloadFile('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf')">download PDF File</button> -->
-      <button (click)="savePdf()">SavePDF</button>
-      <button (click)="clear()">Clear</button>
+			<input id="file" type="file" (change)="upload($event)" style="display: none" accept=".pdf" />
 
+			<button mat-stroked-button color="primary" onclick="file.click()">本機選擇 PDF</button>
+			<button mat-stroked-button color="accent" (click)="savePdf()">PDF 存檔</button>
+			<button mat-stroked-button color="warn" (click)="clear()">清除 PDF 簽名</button>
 
-      
-      <br>
-      <br>
-      <button *ngIf="totalPageNum>0" [disabled]="pageNum<=1" (click)="onClickPreviousePage()">previous page</button>
-      <span *ngIf="totalPageNum>0">{{pageNum}}/{{totalPageNum}}</span>
-      <button *ngIf="totalPageNum>0" [disabled]="pageNum>=totalPageNum" (click)="onClickNextPage()">next page</button>
-    </div>
+			<div class="pdfToolContainer">
+				<button mat-stroked-button color="primary" *ngIf="totalPageNum>0" [disabled]="pageNum<=1" (click)="onClickPreviousePage()">上一頁</button>
+        <button *ngIf="totalPageNum>0" mat-stroked-button style="border 0px">{{pageNum}}/{{totalPageNum}}</button>
+				<button mat-stroked-button color="accent" *ngIf="totalPageNum>0" [disabled]="pageNum>=totalPageNum" (click)="onClickNextPage()">下一頁</button>
+			</div>
 
-    <div class="wrapper">
-      <canvas id="pdf-canvas" [width]="canvasWidth" [height]="canvasHeight" [style.left.px]="canvasLeft"
-        [style.top.px]="canvasTop"></canvas>
-      <canvas id="signature-canvas" [width]="canvasWidth" [height]="canvasHeight" [style.left.px]="canvasLeft"
-        [style.top.px]="canvasTop"></canvas>
-    </div>
+		</div>
 
+	</div>
 
-  </div>
+	<div class="wrapper">
+		<canvas id="pdf-canvas" [width]="canvasWidth" [height]="canvasHeight" [style.left.px]="canvasLeft"
+			[style.top.px]="canvasTop"></canvas>
+		<canvas id="signature-canvas" [width]="canvasWidth" [height]="canvasHeight" [style.left.px]="canvasLeft"
+			[style.top.px]="canvasTop"></canvas>
+	</div>
 
 
-  <!-- <div style="background-color: antiquewhite; width: 500px; height: 500px;" (document:mousemove)="onMouseMove($event)" (document:mousedown)="onMouseDown($event)" (document:mouseup)="onMouseUp($event)"></div> -->
+	<!-- <div style="background-color: antiquewhite; width: 500px; height: 500px;" (document:mousemove)="onMouseMove($event)" (document:mousedown)="onMouseDown($event)" (document:mouseup)="onMouseUp($event)"></div> -->
 </body>
 
 </html>
