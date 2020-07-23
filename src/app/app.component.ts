@@ -6,6 +6,7 @@ import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { FileSaverService } from 'ngx-filesaver';
 import { TouchObjectType } from './touch-object-type.enum'
 import SignaturePad from 'signature_pad'
+import { FileServiceService } from './file-service.service';
 
 @Component({
   selector: 'app-root',
@@ -36,6 +37,12 @@ export class AppComponent {
   public signaturePadHeight: number = 0;
 
   public saveURL: string;
+  private pageRendering: boolean;
+  private pdfDoc: any;
+  private pdfScale: number = 1;
+  private pageNumPending = null;
+  public pageNum: number = 1;
+  public totalPageNum: number = 0;
 
   mouseMoveSubscription: Subscription;
   mouseUpSubscription: Subscription;
@@ -43,7 +50,7 @@ export class AppComponent {
 
   title = 'PDFSignatureDemo';
 
-  constructor(private fileService: FileSaverService) {
+  constructor(private fileSaverService: FileSaverService, private downLoadFileService: FileServiceService) {
     this.canvasWidth = 0;
     this.canvasHeight = 0;
   }
@@ -61,7 +68,11 @@ export class AppComponent {
 
     window.addEventListener("resize", this.resizeCanvas);
 
-    this.signatureRectangle = new SignatureRectangle(0, 0, 0, 0);
+    this.signatureRectangle = new SignatureRectangle(0, 0, 0, 0, 0);
+
+    var blockself = this;
+    var signatureRectangle = this.signatureRectangle;
+
 
     this.mouseMoveSubscription = fromEvent(document.getElementById('signature-canvas'), 'mousemove').subscribe((e: MouseEvent) => {
       // console.log('mousemove', e);
@@ -167,6 +178,8 @@ export class AppComponent {
       e.preventDefault();
       e.stopPropagation();
 
+      this.signatureRectangle.pageIndex = this.pageNum;
+      
       let canvas = document.getElementById('signature-canvas').getBoundingClientRect();
       this.canvasOffsetX = canvas.left;
       this.canvasOffsetY = canvas.top;
@@ -206,30 +219,31 @@ export class AppComponent {
   onLoadPDF(url: string): void {
 
     this.saveURL = url;
-    
+
     var blockself = this;
 
     const pdfjsWorker = import('pdfjs-dist/build/pdf.worker.entry');
 
     pdfjsWorker.then((value) => {
 
-      console.log(value);
 
       pdfjsLib.GlobalWorkerOptions.workerSrc = value;
 
       // Asynchronous download of PDF
       var loadingTask = pdfjsLib.getDocument(url);
       loadingTask.promise.then(function (pdf) {
-        console.log('PDF loaded');
+
+        blockself.pdfDoc = pdf;
+        blockself.totalPageNum = blockself.pdfDoc.numPages;
+
+        console.log("pdf:", pdf, "totalPageNums:", blockself.pdfDoc.numPages);
 
         // Fetch the first page
         var pageNumber = 1;
 
         pdf.getPage(pageNumber).then(function (page) {
-          console.log('Page loaded');
 
-          var scale = 1;
-          var viewport = page.getViewport({ scale: scale });
+          var viewport = page.getViewport({ scale: blockself.pdfScale });
 
           // Prepare canvas using PDF page dimensions
           var canvas = <HTMLCanvasElement>document.getElementById('pdf-canvas');
@@ -243,7 +257,7 @@ export class AppComponent {
           blockself.signaturePadHeight = 200;
 
           blockself.canvasLeft = (screen.width - viewport.width) / 2;
-          blockself.canvasTop = 300;
+          blockself.canvasTop = 350;
 
           // Render PDF page into canvas context
           var renderContext = {
@@ -252,10 +266,7 @@ export class AppComponent {
           };
           var renderTask = page.render(renderContext);
           renderTask.promise.then(function () {
-
             blockself.resizeCanvas();
-
-            console.log('Page rendered');
           });
         });
       }, function (reason) {
@@ -266,7 +277,54 @@ export class AppComponent {
   }
 
 
+  renderPage(num: number) {
+
+    console.log('renderPage', this.pdfDoc);
+
+    var blockself = this;
+
+    this.pageRendering = true;
+
+    // Using promise to fetch the page
+    this.pdfDoc.getPage(num).then(function (page) {
+      var viewport = page.getViewport({ scale: blockself.pdfScale });
+
+      var canvas = <HTMLCanvasElement>document.getElementById('pdf-canvas');
+      var context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      // Render PDF page into canvas context
+      var renderContext = {
+        canvasContext: context,
+        viewport: viewport
+      };
+      var renderTask = page.render(renderContext);
+
+      // Wait for rendering to finish
+      renderTask.promise.then(function () {
+        blockself.pageRendering = false;
+        if (blockself.pageNumPending !== null) {
+          // New page rendering is pending
+          blockself.renderPage(blockself.pageNumPending);
+          blockself.pageNumPending = null;
+        }
+        else {
+          blockself.drawRect();
+        }
+      });
+    });
+  }
+
+
   drawRect(): void {
+
+    console.log(this.pageNum,this.signatureRectangle.pageIndex);
+
+    if (this.pageNum != this.signatureRectangle.pageIndex) {
+      this.clear();
+      return;
+    }
 
     var c = <HTMLCanvasElement>document.getElementById("signature-canvas");
 
@@ -326,6 +384,8 @@ export class AppComponent {
 
     let imageData = this.signaturePad.toDataURL();
 
+    console.log('pageNum:', this.pageNum, 'pageIndex:', this.signatureRectangle.pageIndex);
+
     if (imageData.length > 0) {
       var image = new Image();
       image.src = imageData;
@@ -348,17 +408,13 @@ export class AppComponent {
       (existingPdfBytes) => {
         PDFDocument.load(existingPdfBytes).then((pdfDoc) => {
           pdfDoc.embedFont(StandardFonts.Helvetica).then((helveticaFont) => {
-            const pages = pdfDoc.getPages()
-            const firstPage = pages[0]
+            const pages = pdfDoc.getPages();
+            const firstPage = pages[this.pageNum-1];
             const { width, height } = firstPage.getSize()
 
             console.log(this.signaturePad.toDataURL());
 
             pdfDoc.embedPng(this.signaturePad.toDataURL()).then((pngImage) => {
-
-              console.log('save image');
-              console.log(this.signatureRectangle);
-              console.log(width, height);
 
               // firstPage.drawImage(pngImage, {
               //   x: Math.min(this.signatureRectangle.startX,this.signatureRectangle.endX)*Math.min(width,this.signatureRectangle.width())/Math.max(width,this.signatureRectangle.width()),
@@ -380,9 +436,9 @@ export class AppComponent {
               // Trigger the browser to download the PDF document
               // download(pdfBytes, "pdf-lib_creation_example.pdf", "application/pdf");
 
-              const fileType = this.fileService.genType('pdf-lib_creation_example.pdf');
+              const fileType = this.fileSaverService.genType('pdf-lib_creation_example.pdf');
               const txtBlob = new Blob([pdfBytes], { type: fileType });
-              this.fileService.save(txtBlob, 'pdf-lib_creation_example.pdf');
+              this.fileSaverService.save(txtBlob, 'pdf-lib_creation_example.pdf');
 
               console.log(txtBlob);
             });
@@ -429,6 +485,7 @@ export class AppComponent {
     this.signaturePad.clear();
   }
 
+
   upload(event) {
     const file = event.target.files[0];
     if (!file) {
@@ -442,5 +499,50 @@ export class AppComponent {
       blockself.onLoadPDF(<string>fr.result);
     }
     fr.readAsDataURL(file);
+  }
+
+
+  downloadFile(url: string) {
+    var blockself = this;
+
+    this.downLoadFileService.downloadFile(url).subscribe(res => {
+
+      var fr = new FileReader();
+
+      fr.onload = function () {
+        blockself.onLoadPDF(<string>fr.result);
+      }
+      fr.readAsDataURL(res.body);
+
+    });
+  }
+
+
+  queueRenderPage(num) {
+    console.log('queueRenderPage:', num);
+
+    if (this.pageRendering) {
+      this.pageNumPending = num;
+    } else {
+      this.renderPage(num);
+    }
+  }
+
+
+  onClickPreviousePage() {
+    if (this.pageNum <= 1) {
+      return;
+    }
+    this.pageNum--;
+    this.queueRenderPage(this.pageNum);
+  }
+
+
+  onClickNextPage() {
+    if (this.pageNum >= this.pdfDoc.numPages) {
+      return;
+    }
+    this.pageNum++;
+    this.queueRenderPage(this.pageNum);
   }
 }

@@ -10,7 +10,7 @@ export class SignatureRectangle {
     private minimalDistance: number = 20;
     public touchPoint: edgePoint = {x:0,y:0};
 
-    constructor(public startX: number, public startY: number, public endX: number, public endY: number) {
+    constructor(public startX: number, public startY: number, public endX: number, public endY: number, public pageIndex:number) {
 
     };
 
