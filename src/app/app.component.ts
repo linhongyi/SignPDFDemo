@@ -1,22 +1,20 @@
-import { Component, ViewChild } from '@angular/core';
-import * as pdfjsLib from 'pdfjs-dist/build/pdf'
-import { Subscription, fromEvent, from } from 'rxjs';
-import { SignatureRectangle, edgePoint } from './signature-rectangle'
-import { PDFDocument, StandardFonts } from 'pdf-lib';
-import { FileSaverService } from 'ngx-filesaver';
-import { TouchObjectType } from './touch-object-type.enum'
-import SignaturePad from 'signature_pad'
-import { FileServiceService } from './file-service.service';
+import { Component, ViewChild } from "@angular/core";
+import * as pdfjsLib from "pdfjs-dist/build/pdf";
+import { Subscription, fromEvent, from } from "rxjs";
+import { SignatureRectangle, edgePoint } from "./signature-rectangle";
+import { PDFDocument, StandardFonts } from "pdf-lib";
+import { FileSaverService } from "ngx-filesaver";
+import { TouchObjectType } from "./touch-object-type.enum";
+import SignaturePad from "signature_pad";
+import { FileServiceService } from "./file-service.service";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"]
 })
-
 export class AppComponent {
-
-  @ViewChild('signature-pad') canvas: HTMLCanvasElement;
+  @ViewChild("signature-pad") canvas: HTMLCanvasElement;
 
   imageEncodingString: string;
   signatureRectangle: SignatureRectangle;
@@ -48,22 +46,22 @@ export class AppComponent {
   mouseUpSubscription: Subscription;
   mouseDownSubscription: Subscription;
 
-  title = 'PDFSignatureDemo';
+  title = "PDFSignatureDemo";
 
-  constructor(private fileSaverService: FileSaverService, private downLoadFileService: FileServiceService) {
+  constructor(
+    private fileSaverService: FileSaverService,
+    private downLoadFileService: FileServiceService
+  ) {
     this.canvasWidth = 0;
     this.canvasHeight = 0;
   }
 
-
   ngOnInit() {
-
-
-    this.canvas = <HTMLCanvasElement>document.getElementById('signature-pad');
+    this.canvas = <HTMLCanvasElement>document.getElementById("signature-pad");
 
     this.signaturePad = new SignaturePad(this.canvas, {
-      backgroundColor: 'rgba(255, 255, 255, 0)',
-      penColor: 'rgb(0, 0, 0)'
+      backgroundColor: "rgba(255, 255, 255, 0)",
+      penColor: "rgb(0, 0, 0)"
     });
 
     window.addEventListener("resize", this.resizeCanvas);
@@ -73,13 +71,17 @@ export class AppComponent {
     var blockself = this;
     var signatureRectangle = this.signatureRectangle;
 
-
-    this.mouseMoveSubscription = fromEvent(document.getElementById('signature-canvas'), 'mousemove').subscribe((e: MouseEvent) => {
+    this.mouseMoveSubscription = fromEvent(
+      document.getElementById("signature-canvas"),
+      "mousemove"
+    ).subscribe((e: MouseEvent) => {
       // console.log('mousemove', e);
       e.preventDefault();
       e.stopPropagation();
 
-      let canvas = document.getElementById('signature-canvas').getBoundingClientRect();
+      let canvas = document
+        .getElementById("signature-canvas")
+        .getBoundingClientRect();
       this.canvasOffsetX = canvas.left;
       this.canvasOffsetY = canvas.top;
 
@@ -89,26 +91,68 @@ export class AppComponent {
 
         this.clear();
         this.drawRect();
-      }
-      else if (this.mapUtility == TouchObjectType.Move) {
-
+      } else if (this.mapUtility == TouchObjectType.Move) {
         var dx = e.clientX - this.canvasOffsetX - this.downPoint.x;
         var dy = e.clientY - this.canvasOffsetY - this.downPoint.y;
 
-        if (Math.min(this.signatureRectangle.startX, this.signatureRectangle.endX) + dx < 0) {
-          dx = -Math.min(this.signatureRectangle.startX, this.signatureRectangle.endX);
+        if (
+          Math.min(
+            this.signatureRectangle.startX,
+            this.signatureRectangle.endX
+          ) +
+            dx <
+          0
+        ) {
+          dx = -Math.min(
+            this.signatureRectangle.startX,
+            this.signatureRectangle.endX
+          );
         }
 
-        if (Math.max(this.signatureRectangle.startX, this.signatureRectangle.endX) + dx > this.canvasWidth) {
-          dx = this.canvasWidth - Math.max(this.signatureRectangle.startX, this.signatureRectangle.endX);
+        if (
+          Math.max(
+            this.signatureRectangle.startX,
+            this.signatureRectangle.endX
+          ) +
+            dx >
+          this.canvasWidth
+        ) {
+          dx =
+            this.canvasWidth -
+            Math.max(
+              this.signatureRectangle.startX,
+              this.signatureRectangle.endX
+            );
         }
 
-        if (Math.min(this.signatureRectangle.startY, this.signatureRectangle.endY) + dy < 0) {
-          dy = -Math.min(this.signatureRectangle.startY, this.signatureRectangle.endY);
+        if (
+          Math.min(
+            this.signatureRectangle.startY,
+            this.signatureRectangle.endY
+          ) +
+            dy <
+          0
+        ) {
+          dy = -Math.min(
+            this.signatureRectangle.startY,
+            this.signatureRectangle.endY
+          );
         }
 
-        if (Math.max(this.signatureRectangle.startY, this.signatureRectangle.endY) + dy > this.canvasHeight) {
-          dy = this.canvasHeight - Math.max(this.signatureRectangle.startY, this.signatureRectangle.endY);
+        if (
+          Math.max(
+            this.signatureRectangle.startY,
+            this.signatureRectangle.endY
+          ) +
+            dy >
+          this.canvasHeight
+        ) {
+          dy =
+            this.canvasHeight -
+            Math.max(
+              this.signatureRectangle.startY,
+              this.signatureRectangle.endY
+            );
         }
 
         this.signatureRectangle.startX += dx;
@@ -121,11 +165,11 @@ export class AppComponent {
 
         this.clear();
         this.drawRect();
-      }
-      else if (this.mapUtility == TouchObjectType.ShiftAllDirection ||
+      } else if (
+        this.mapUtility == TouchObjectType.ShiftAllDirection ||
         this.mapUtility == TouchObjectType.ShiftXDirection ||
-        this.mapUtility == TouchObjectType.ShiftYDirection) {
-
+        this.mapUtility == TouchObjectType.ShiftYDirection
+      ) {
         var dx = e.clientX - this.canvasOffsetX - this.downPoint.x;
         var dy = e.clientY - this.canvasOffsetY - this.downPoint.y;
 
@@ -147,8 +191,7 @@ export class AppComponent {
 
         if (this.mapUtility == TouchObjectType.ShiftXDirection) {
           dy = 0;
-        }
-        else if (this.mapUtility == TouchObjectType.ShiftYDirection) {
+        } else if (this.mapUtility == TouchObjectType.ShiftYDirection) {
           dx = 0;
         }
 
@@ -162,37 +205,46 @@ export class AppComponent {
       }
     });
 
-    this.mouseUpSubscription = fromEvent(document.getElementById('signature-canvas'), 'mouseup').subscribe((e) => {
+    this.mouseUpSubscription = fromEvent(
+      document.getElementById("signature-canvas"),
+      "mouseup"
+    ).subscribe(e => {
       // console.log('mouseup', e);
 
       e.preventDefault();
       e.stopPropagation();
 
       this.mapUtility = TouchObjectType.None;
-
     });
 
-    this.mouseDownSubscription = fromEvent(document.getElementById('signature-canvas'), 'mousedown').subscribe((e: MouseEvent) => {
+    this.mouseDownSubscription = fromEvent(
+      document.getElementById("signature-canvas"),
+      "mousedown"
+    ).subscribe((e: MouseEvent) => {
       // console.log('mousedown', e);
 
       e.preventDefault();
       e.stopPropagation();
 
       this.signatureRectangle.pageIndex = this.pageNum;
-      
-      let canvas = document.getElementById('signature-canvas').getBoundingClientRect();
+
+      let canvas = document
+        .getElementById("signature-canvas")
+        .getBoundingClientRect();
       this.canvasOffsetX = canvas.left;
       this.canvasOffsetY = canvas.top;
 
       this.downPoint = {
         x: e.clientX - this.canvasOffsetX,
-        y: e.clientY - this.canvasOffsetY,
+        y: e.clientY - this.canvasOffsetY
       };
 
-      this.mapUtility = this.signatureRectangle.getTouchType(this.downPoint.x, this.downPoint.y);
+      this.mapUtility = this.signatureRectangle.getTouchType(
+        this.downPoint.x,
+        this.downPoint.y
+      );
 
       if (this.mapUtility == TouchObjectType.None) {
-
         this.mapUtility = TouchObjectType.Drag;
         this.signatureRectangle.startX = e.clientX - this.canvasOffsetX;
         this.signatureRectangle.startY = e.clientY - this.canvasOffsetY;
@@ -200,97 +252,93 @@ export class AppComponent {
     });
   }
 
-
   ngOnDestroy() {
     this.mouseMoveSubscription.unsubscribe();
     this.mouseUpSubscription.unsubscribe();
     this.mouseDownSubscription.unsubscribe();
   }
 
+  ngAfterViewInit() {}
 
-  ngAfterViewInit() {
-
-    // this.signaturePad.set('canvasWidth', 800);
-    // this.signaturePad.set('canvasHeight', 200);
-    // this.signaturePad.clear(); // invoke functions from szimek/signature_pad API
+  resetParameter() {
+    this.signatureRectangle = new SignatureRectangle(0,0,0,0,0);
+    this.pageNum = 1;
   }
 
-
   onLoadPDF(url: string): void {
-
     this.saveURL = url;
 
     var blockself = this;
 
-    const pdfjsWorker = import('pdfjs-dist/build/pdf.worker.entry');
+    const pdfjsWorker = import("pdfjs-dist/build/pdf.worker.entry");
 
-    pdfjsWorker.then((value) => {
-
-
+    pdfjsWorker.then(value => {
       pdfjsLib.GlobalWorkerOptions.workerSrc = value;
 
       // Asynchronous download of PDF
       var loadingTask = pdfjsLib.getDocument(url);
-      loadingTask.promise.then(function (pdf) {
+      loadingTask.promise.then(
+        function(pdf) {
+          blockself.pdfDoc = pdf;
+          blockself.totalPageNum = blockself.pdfDoc.numPages;
 
-        blockself.pdfDoc = pdf;
-        blockself.totalPageNum = blockself.pdfDoc.numPages;
+          console.log("pdf:", pdf, "totalPageNums:", blockself.pdfDoc.numPages);
 
-        console.log("pdf:", pdf, "totalPageNums:", blockself.pdfDoc.numPages);
+          // Fetch the first page
+          var pageNumber = 1;
 
-        // Fetch the first page
-        var pageNumber = 1;
+          pdf.getPage(pageNumber).then(function(page) {
+            var viewport = page.getViewport({ scale: blockself.pdfScale });
 
-        pdf.getPage(pageNumber).then(function (page) {
+            // Prepare canvas using PDF page dimensions
+            var canvas = <HTMLCanvasElement>(
+              document.getElementById("pdf-canvas")
+            );
+            var context = canvas.getContext("2d");
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
 
-          var viewport = page.getViewport({ scale: blockself.pdfScale });
+            blockself.canvasWidth = viewport.width;
+            blockself.canvasHeight = viewport.height;
+            blockself.signaturePadWidth = viewport.width;
+            blockself.signaturePadHeight = 200;
 
-          // Prepare canvas using PDF page dimensions
-          var canvas = <HTMLCanvasElement>document.getElementById('pdf-canvas');
-          var context = canvas.getContext('2d');
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
+            blockself.canvasLeft = (screen.width - viewport.width) / 2;
+            blockself.canvasTop = 380;
 
-          blockself.canvasWidth = viewport.width;
-          blockself.canvasHeight = viewport.height;
-          blockself.signaturePadWidth = viewport.width;
-          blockself.signaturePadHeight = 200;
-
-          blockself.canvasLeft = (screen.width - viewport.width) / 2;
-          blockself.canvasTop = 380;
-
-          // Render PDF page into canvas context
-          var renderContext = {
-            canvasContext: context,
-            viewport: viewport
-          };
-          var renderTask = page.render(renderContext);
-          renderTask.promise.then(function () {
-            blockself.resizeCanvas();
+            // Render PDF page into canvas context
+            var renderContext = {
+              canvasContext: context,
+              viewport: viewport
+            };
+            var renderTask = page.render(renderContext);
+            renderTask.promise.then(function() {
+              blockself.resizeCanvas();
+              blockself.resetParameter();
+            });
           });
-        });
-      }, function (reason) {
-        // PDF loading error
-        console.error(reason);
-      });
+        },
+        function(reason) {
+          // PDF loading error
+          console.error(reason);
+        }
+      );
     });
   }
 
-
   renderPage(num: number) {
-
-    console.log('renderPage', this.pdfDoc);
+    console.log("renderPage", this.pdfDoc);
 
     var blockself = this;
 
     this.pageRendering = true;
 
     // Using promise to fetch the page
-    this.pdfDoc.getPage(num).then(function (page) {
+    this.pdfDoc.getPage(num).then(function(page) {
       var viewport = page.getViewport({ scale: blockself.pdfScale });
 
-      var canvas = <HTMLCanvasElement>document.getElementById('pdf-canvas');
-      var context = canvas.getContext('2d');
+      var canvas = <HTMLCanvasElement>document.getElementById("pdf-canvas");
+      var context = canvas.getContext("2d");
       canvas.height = viewport.height;
       canvas.width = viewport.width;
 
@@ -302,24 +350,21 @@ export class AppComponent {
       var renderTask = page.render(renderContext);
 
       // Wait for rendering to finish
-      renderTask.promise.then(function () {
+      renderTask.promise.then(function() {
         blockself.pageRendering = false;
         if (blockself.pageNumPending !== null) {
           // New page rendering is pending
           blockself.renderPage(blockself.pageNumPending);
           blockself.pageNumPending = null;
-        }
-        else {
+        } else {
           blockself.drawRect();
         }
       });
     });
   }
 
-
   drawRect(): void {
-
-    console.log(this.pageNum,this.signatureRectangle.pageIndex);
+    console.log(this.pageNum, this.signatureRectangle.pageIndex);
 
     if (this.pageNum != this.signatureRectangle.pageIndex) {
       this.clear();
@@ -341,81 +386,127 @@ export class AppComponent {
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.arc(this.signatureRectangle.startX,
-      this.signatureRectangle.startY, this.edgeRadius, 0, 2 * Math.PI);
+    ctx.arc(
+      this.signatureRectangle.startX,
+      this.signatureRectangle.startY,
+      this.edgeRadius,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc((this.signatureRectangle.startX + this.signatureRectangle.endX) / 2,
-      this.signatureRectangle.startY, this.edgeRadius, 0, 2 * Math.PI);
+    ctx.arc(
+      (this.signatureRectangle.startX + this.signatureRectangle.endX) / 2,
+      this.signatureRectangle.startY,
+      this.edgeRadius,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(this.signatureRectangle.endX,
-      this.signatureRectangle.startY, this.edgeRadius, 0, 2 * Math.PI);
+    ctx.arc(
+      this.signatureRectangle.endX,
+      this.signatureRectangle.startY,
+      this.edgeRadius,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(this.signatureRectangle.endX,
-      (this.signatureRectangle.startY + this.signatureRectangle.endY) / 2, this.edgeRadius, 0, 2 * Math.PI);
+    ctx.arc(
+      this.signatureRectangle.endX,
+      (this.signatureRectangle.startY + this.signatureRectangle.endY) / 2,
+      this.edgeRadius,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(this.signatureRectangle.endX,
-      this.signatureRectangle.endY, this.edgeRadius, 0, 2 * Math.PI);
+    ctx.arc(
+      this.signatureRectangle.endX,
+      this.signatureRectangle.endY,
+      this.edgeRadius,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc((this.signatureRectangle.startX + this.signatureRectangle.endX) / 2,
-      this.signatureRectangle.endY, this.edgeRadius, 0, 2 * Math.PI);
+    ctx.arc(
+      (this.signatureRectangle.startX + this.signatureRectangle.endX) / 2,
+      this.signatureRectangle.endY,
+      this.edgeRadius,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(this.signatureRectangle.startX,
-      this.signatureRectangle.endY, this.edgeRadius, 0, 2 * Math.PI);
+    ctx.arc(
+      this.signatureRectangle.startX,
+      this.signatureRectangle.endY,
+      this.edgeRadius,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(this.signatureRectangle.startX,
-      (this.signatureRectangle.startY + this.signatureRectangle.endY) / 2, this.edgeRadius, 0, 2 * Math.PI);
+    ctx.arc(
+      this.signatureRectangle.startX,
+      (this.signatureRectangle.startY + this.signatureRectangle.endY) / 2,
+      this.edgeRadius,
+      0,
+      2 * Math.PI
+    );
     ctx.fill();
 
     ctx.closePath();
 
     let imageData = this.signaturePad.toDataURL();
 
-    console.log('pageNum:', this.pageNum, 'pageIndex:', this.signatureRectangle.pageIndex);
+    console.log(
+      "pageNum:",
+      this.pageNum,
+      "pageIndex:",
+      this.signatureRectangle.pageIndex
+    );
 
     if (imageData.length > 0) {
       var image = new Image();
       image.src = imageData;
 
-      ctx.drawImage(image,
-        Math.min(this.signatureRectangle.startX, this.signatureRectangle.endX) + 1,
-        Math.min(this.signatureRectangle.startY, this.signatureRectangle.endY) + 1,
+      ctx.drawImage(
+        image,
+        Math.min(this.signatureRectangle.startX, this.signatureRectangle.endX) +
+          1,
+        Math.min(this.signatureRectangle.startY, this.signatureRectangle.endY) +
+          1,
         this.signatureRectangle.width() - 1,
         this.signatureRectangle.height() - 1
       );
     }
-
   }
-
 
   savePdf(): void {
     const url = this.saveURL;
 
-    fetch(url).then(res => res.arrayBuffer()).then(
-      (existingPdfBytes) => {
-        PDFDocument.load(existingPdfBytes).then((pdfDoc) => {
-          pdfDoc.embedFont(StandardFonts.Helvetica).then((helveticaFont) => {
+    fetch(url)
+      .then(res => res.arrayBuffer())
+      .then(existingPdfBytes => {
+        PDFDocument.load(existingPdfBytes).then(pdfDoc => {
+          pdfDoc.embedFont(StandardFonts.Helvetica).then(helveticaFont => {
             const pages = pdfDoc.getPages();
-            const firstPage = pages[this.pageNum-1];
-            const { width, height } = firstPage.getSize()
+            const firstPage = pages[this.pageNum - 1];
+            const { width, height } = firstPage.getSize();
 
             console.log(this.signaturePad.toDataURL());
 
-            pdfDoc.embedPng(this.signaturePad.toDataURL()).then((pngImage) => {
-
+            pdfDoc.embedPng(this.signaturePad.toDataURL()).then(pngImage => {
               // firstPage.drawImage(pngImage, {
               //   x: Math.min(this.signatureRectangle.startX,this.signatureRectangle.endX)*Math.min(width,this.signatureRectangle.width())/Math.max(width,this.signatureRectangle.width()),
               //   y: Math.min(this.signatureRectangle.startY,this.signatureRectangle.endY)*Math.min(height,this.signatureRectangle.height())/Math.max(height,this.signatureRectangle.height()),
@@ -424,31 +515,41 @@ export class AppComponent {
               // });
 
               firstPage.drawImage(pngImage, {
-                x: Math.min(this.signatureRectangle.startX, this.signatureRectangle.endX),
-                y: this.canvasHeight - Math.min(this.signatureRectangle.startY, this.signatureRectangle.endY) - this.signatureRectangle.height(),
+                x: Math.min(
+                  this.signatureRectangle.startX,
+                  this.signatureRectangle.endX
+                ),
+                y:
+                  this.canvasHeight -
+                  Math.min(
+                    this.signatureRectangle.startY,
+                    this.signatureRectangle.endY
+                  ) -
+                  this.signatureRectangle.height(),
                 width: this.signatureRectangle.width(),
                 height: this.signatureRectangle.height()
               });
-
             });
 
-            pdfDoc.save().then((pdfBytes) => {
+            pdfDoc.save().then(pdfBytes => {
               // Trigger the browser to download the PDF document
               // download(pdfBytes, "pdf-lib_creation_example.pdf", "application/pdf");
 
-              const fileType = this.fileSaverService.genType('pdf-lib_creation_example.pdf');
+              const fileType = this.fileSaverService.genType(
+                "pdf-lib_creation_example.pdf"
+              );
               const txtBlob = new Blob([pdfBytes], { type: fileType });
-              this.fileSaverService.save(txtBlob, 'pdf-lib_creation_example.pdf');
+              this.fileSaverService.save(
+                txtBlob,
+                "pdf-lib_creation_example.pdf"
+              );
 
               console.log(txtBlob);
             });
-
-          })
-        })
-      }
-    )
+          });
+        });
+      });
   }
-
 
   clear(): void {
     var c = <HTMLCanvasElement>document.getElementById("signature-canvas");
@@ -456,26 +557,21 @@ export class AppComponent {
     ctx.clearRect(0, 0, c.width, c.height);
   }
 
-
   drawComplete() {
     // will be notified of szimek/signature_pad's onEnd event
   }
 
-
   drawStart() {
     // will be notified of szimek/signature_pad's onBegin event
-    console.log('begin drawing');
+    console.log("begin drawing");
   }
-
 
   drawClear() {
     this.signaturePad.clear();
   }
 
-
   resizeCanvas() {
-
-    var canvas = <HTMLCanvasElement>document.getElementById('signature-pad')
+    var canvas = <HTMLCanvasElement>document.getElementById("signature-pad");
 
     var ratio = Math.max(window.devicePixelRatio || 1, 1);
 
@@ -484,7 +580,6 @@ export class AppComponent {
     canvas.getContext("2d").scale(ratio, ratio);
     this.signaturePad.clear();
   }
-
 
   upload(event) {
     const file = event.target.files[0];
@@ -495,31 +590,27 @@ export class AppComponent {
     var fr = new FileReader();
     var blockself = this;
 
-    fr.onload = function () {
+    fr.onload = function() {
       blockself.onLoadPDF(<string>fr.result);
-    }
+    };
     fr.readAsDataURL(file);
   }
-
 
   downloadFile(url: string) {
     var blockself = this;
 
     this.downLoadFileService.downloadFile(url).subscribe(res => {
-
       var fr = new FileReader();
 
-      fr.onload = function () {
+      fr.onload = function() {
         blockself.onLoadPDF(<string>fr.result);
-      }
+      };
       fr.readAsDataURL(res.body);
-
     });
   }
 
-
   queueRenderPage(num) {
-    console.log('queueRenderPage:', num);
+    console.log("queueRenderPage:", num);
 
     if (this.pageRendering) {
       this.pageNumPending = num;
@@ -528,7 +619,6 @@ export class AppComponent {
     }
   }
 
-
   onClickPreviousePage() {
     if (this.pageNum <= 1) {
       return;
@@ -536,7 +626,6 @@ export class AppComponent {
     this.pageNum--;
     this.queueRenderPage(this.pageNum);
   }
-
 
   onClickNextPage() {
     if (this.pageNum >= this.pdfDoc.numPages) {
